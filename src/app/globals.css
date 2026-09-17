@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ivory: #f7f1e7;
+  --color-ink: #1f1b17;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ivory-100 text-ink font-sans antialiased;
+}
+
+::selection {
+  background-color: #1f1b17;
+  color: #f7f1e7;
+}
+
+/* Focus visibility for accessibility */
+:focus-visible {
+  outline: 2px solid #af8d4b;
+  outline-offset: 2px;
+}
+
+/* Elegant thin scrollbar for panels */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #c4bbb0 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #c4bbb0;
+  border-radius: 9999px;
+}
+
+/* Editorial baseline */
+.editorial-eyebrow {
+  @apply text-[11px] font-medium uppercase tracking-widestX text-gold-600;
+}
+
+.tracking-widestX {
+  letter-spacing: 0.2em;
+}
+
+/* Underline animation for nav links */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
