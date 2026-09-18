@@ -20,6 +20,9 @@ const buttonVariants = cva(
         outline:
           'border border-ink-200 bg-transparent text-foreground hover:border-ink-300 hover:bg-muted',
         ghost: 'bg-transparent text-foreground hover:bg-muted',
+        /** Destructive confirmations (delete actions). */
+        destructive:
+          'bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90 active:scale-[0.99]',
         link: 'text-foreground underline-offset-4 hover:underline',
         /** Official WhatsApp green, for inquiry actions. */
         whatsapp: 'bg-[#25D366] text-white shadow-soft hover:bg-[#1DA851] active:scale-[0.99]',

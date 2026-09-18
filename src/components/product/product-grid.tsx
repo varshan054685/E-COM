@@ -18,7 +18,7 @@ export function ProductGrid({ products, className }: ProductGridProps) {
       )}
     >
       {products.map((product, index) => (
-        <Reveal key={product.id} delay={Math.min(index, 5) * 0.05}>
+        <Reveal key={product.id} delay={Math.min(index, 5) * 0.05} className="h-full">
           <ProductCard product={product} />
         </Reveal>
       ))}

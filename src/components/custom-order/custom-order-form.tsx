@@ -124,7 +124,7 @@ export function CustomOrderForm() {
             type="tel"
             value={form.phone}
             onChange={(event) => update('phone', event.target.value)}
-            placeholder="+91 98765 43210"
+            placeholder="+91 90000 00000"
             autoComplete="tel"
             aria-invalid={Boolean(errors.phone)}
           />

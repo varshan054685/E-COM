@@ -18,7 +18,8 @@ image-led grids.
 | UI primitives | shadcn/ui-style components on Radix UI (`Button`, `Card`, `Input`, `Checkbox`, `Dialog`, `Sheet`) |
 | Icons | Lucide React (+ inline brand SVGs, since Lucide v1 dropped them) |
 | Motion | Framer Motion (page transitions, scroll reveals, expanding panels) |
-| State | Zustand with `persist` → cart + measurement profile survive reloads |
+| State | Zustand with `persist` → cart, measurement profile and session survive reloads |
+| Auth | Device-local accounts (Zustand + salted SHA-256 digest) — **UI demo, not real security** |
 | Fonts | Playfair Display (headings) + Inter (body), self-hosted via `next/font` |
 
 No database, auth or payment backend — see [What is intentionally not here](#what-is-intentionally-not-here).
@@ -81,10 +82,12 @@ src/
 │   ├── shop/page.tsx           # listing + server-side filtering from the URL
 │   ├── product/[slug]/page.tsx # detail + generateStaticParams + JSON-LD
 │   ├── custom-orders/ kids/ about/ contact/
+│   ├── login/ register/ forgot-password/   # auth screens
 │   ├── cart/ account/          # client views behind server metadata wrappers
 │   └── policies/[slug]/        # shipping & returns, privacy, terms
 ├── components/
-│   ├── ui/                     # shadcn-style primitives
+│   ├── ui/                     # shadcn-style primitives (incl. dropdown-menu)
+│   ├── auth/                   # AuthShell + AuthForm (login / register / reset)
 │   ├── layout/                 # Navbar, Footer, SearchDialog, PageHero, WhatsAppFab
 │   ├── home/                   # Hero, FeaturedCategories, Bestsellers, AtelierStory, CTA
 │   ├── product/                # ProductCard/Grid, Gallery, AddToBagPanel, MeasurementForm, ShopFilters
@@ -98,6 +101,7 @@ src/
 │   ├── policies.ts             # policy copy
 │   └── use-hydrated.ts         # guards persisted state against SSR mismatch
 └── store/
+    ├── auth.ts                 # device-local accounts (demo only)
     ├── cart.ts                 # Zustand cart (+ shipping thresholds)
     └── measurements.ts         # saved body-measurement profile
 ```
@@ -131,8 +135,11 @@ product/size/colour/measurement combinations, and offers quantity controls and a
 progress bar. The `/cart` page collects delivery details and composes a fully formatted order
 message, including measurements and reference file names, into WhatsApp.
 
-**Account** — a local "atelier profile" showing saved measurements (reused to pre-fill every later
-order) and bag summary.
+**Account & sign-in** — sign in, create account and reset-password screens, with a "Forgot password?"
+link and cross-links between all three. Once signed in the header shows an avatar menu with **Sign
+out**, the mobile drawer shows the session with its own sign-out button, and the account page greets
+you by name with a member-since date. Saved measurements (reused to pre-fill every later order) and
+the bag summary sit alongside it.
 
 ---
 
@@ -160,28 +167,38 @@ changes.
 
 ## What is intentionally not here
 
-This build is the **customer-facing storefront only** — no database, auth, admin panel or payment
-gateway. Orders and custom commissions hand off to WhatsApp, which is how the boutique already
-takes them.
+This build is the **customer-facing storefront only** — no database, no server, no admin panel and
+no payment gateway. Orders and custom commissions hand off to WhatsApp, which is how the boutique
+already takes them.
 
-To add those later:
+> **The sign-in flow is a UI demo, not authentication.** Accounts live in this browser's
+> `localStorage` (`src/store/auth.ts`) behind a salted SHA-256 digest — enough to make the flow
+> complete and clickable, but it protects nothing and anyone with the device can read or clear it.
+> Never put a real customer password into it.
 
-1. **Persistence** — replace the arrays in `lib/catalog.ts` with your data source of choice and keep
-   the helper signatures.
-2. **Auth & orders** — add an order model, then post the composed message from
-   `components/commerce/cart-view.tsx` to an API route instead of `wa.me`.
-3. **Payments** — insert a gateway between the order summary and the WhatsApp hand-off; the totals
-   are already computed in one place (`store/cart.ts`).
-4. **Newsletter & uploads** — `components/layout/newsletter-form.tsx` and the upload input in
-   `components/product/measurement-form.tsx` currently stay client-side; both have comments marking
-   the integration point.
+To make any of it real:
+
+1. **Auth** — point `src/store/auth.ts` at a provider (Auth.js, Clerk, Supabase Auth…). The three
+   calls to replace are isolated as `signIn`, `register` and `resetPassword`; the forms in
+   `src/components/auth/auth-form.tsx` need no changes.
+2. **Persistence** — replace the arrays in `lib/catalog.ts` with your data source and keep the helper
+   signatures.
+3. **Orders** — post the composed message from `components/commerce/cart-view.tsx` to an API route
+   instead of `wa.me`.
+4. **Payments** — insert a gateway between the order summary and the WhatsApp hand-off; totals are
+   computed in one place (`store/cart.ts`).
+5. **Newsletter & uploads** — `components/layout/newsletter-form.tsx` and the upload input in
+   `components/product/measurement-form.tsx` stay client-side; both have comments marking the
+   integration point.
 
 ---
 
 ## Verified
 
 - `npm run typecheck` — clean.
-- `npm run build` — 31 routes generated (18 product pages + 3 policy pages statically pre-rendered).
+- `npm run build` — 34 routes generated (18 product pages + 3 policy pages statically pre-rendered).
 - Smoke-tested against a production server: every route returns 200, unknown routes 404, category
-  and colour filtering narrow results correctly, the empty-filter state renders, and the WhatsApp
-  deep links are present in the HTML.
+  and colour filtering narrow results correctly, the empty-filter state renders, the auth pages
+  render their headings and cross-links, and the WhatsApp deep links are present in the HTML.
+- Product cards verified to emit one `min-h-[2.75em]` title reserve and one `mt-auto` action wrapper
+  each, so price rows and **Add to Cart** buttons align across a grid row and across carousel slides.

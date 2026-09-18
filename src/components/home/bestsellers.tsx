@@ -71,8 +71,9 @@ export function Bestsellers() {
         ref={railRef}
         className="no-scrollbar mt-11 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 lg:px-8"
       >
+        {/* `flex` lets every slide stretch to the tallest card in the rail. */}
         {products.map((product) => (
-          <li key={product.id} className="snap-start">
+          <li key={product.id} className="flex snap-start">
             <ProductCard product={product} fixedWidth />
           </li>
         ))}

@@ -44,14 +44,14 @@ export function ProductCard({ product, className, fixedWidth = false }: ProductC
   return (
     <article
       className={cn(
-        'group flex flex-col',
+        'group flex h-full flex-col',
         fixedWidth && 'w-[68vw] shrink-0 sm:w-[46vw] md:w-[31vw] lg:w-[23vw] xl:w-[19rem]',
         className,
       )}
     >
       <Link
         href={`/product/${product.slug}`}
-        className="relative block aspect-3/4 overflow-hidden rounded-lg bg-ivory-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="relative block aspect-3/4 shrink-0 overflow-hidden rounded-lg bg-ivory-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
         <Image
           src={product.images[0]}
@@ -70,7 +70,9 @@ export function ProductCard({ product, className, fixedWidth = false }: ProductC
 
       <div className="flex flex-1 flex-col pt-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-serif text-lg leading-snug">
+          {/* `min-h` reserves two lines so price rows and buttons line up
+              across every card in a grid row or carousel. */}
+          <h3 className="line-clamp-2 min-h-[2.75em] font-serif text-lg leading-snug">
             <Link
               href={`/product/${product.slug}`}
               className="transition-colors hover:text-gold-700"
@@ -94,16 +96,19 @@ export function ProductCard({ product, className, fixedWidth = false }: ProductC
           ) : null}
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleAddToCart}
-          className="mt-4 w-full border-ink-200 text-xs tracking-[0.12em] uppercase hover:border-primary hover:bg-primary hover:text-primary-foreground"
-        >
-          <ShoppingBag className="size-3.5" />
-          Add to Cart
-        </Button>
+        {/* `mt-auto` pins the action to the bottom of the tallest card. */}
+        <div className="mt-auto pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAddToCart}
+            className="w-full border-ink-200 text-xs tracking-[0.12em] uppercase hover:border-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            <ShoppingBag className="size-3.5" />
+            Add to Cart
+          </Button>
+        </div>
       </div>
     </article>
   );

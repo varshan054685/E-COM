@@ -3,14 +3,23 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Search, ShoppingBag, Truck, User } from 'lucide-react';
+import { LogOut, Menu, Search, ShoppingBag, Truck, User } from 'lucide-react';
 
 import { SearchDialog } from '@/components/layout/search-dialog';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { NAV_LINKS, SITE, WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from '@/lib/site';
 import { useHydrated } from '@/lib/use-hydrated';
 import { cn } from '@/lib/utils';
+import { displayName, signOutUser, useSession } from '@/lib/supabase/auth-client';
 import { useCartCount, useCartStore } from '@/store/cart';
 
 const iconButton =
@@ -21,6 +30,7 @@ export function Navbar() {
   const hydrated = useHydrated();
   const count = useCartCount();
   const openCart = useCartStore((state) => state.openCart);
+  const { user, loading: sessionLoading } = useSession();
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -41,6 +51,7 @@ export function Navbar() {
   }, [pathname]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const signedIn = !sessionLoading && Boolean(user);
 
   return (
     <>
@@ -110,9 +121,54 @@ export function Navbar() {
               <Search className="size-5" />
             </button>
 
-            <Link href="/account" className={cn(iconButton, 'hidden sm:inline-flex')} aria-label="Your account">
-              <User className="size-5" />
-            </Link>
+            {/* Account — a menu when signed in, a sign-in link when signed out. */}
+            {signedIn && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(iconButton, 'hidden sm:inline-flex')}
+                    aria-label={`Account menu for ${displayName(user)}`}
+                  >
+                    <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+                      {displayName(user).charAt(0).toUpperCase()}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>
+                    <span className="block truncate text-sm font-medium">
+                      {displayName(user)}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/account">
+                      <User className="size-4" />
+                      Your account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => void signOutUser()}
+                    className="text-destructive focus:bg-destructive/8 focus:text-destructive"
+                  >
+                    <LogOut className="size-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                href="/login"
+                className={cn(iconButton, 'hidden sm:inline-flex')}
+                aria-label="Sign in"
+              >
+                <User className="size-5" />
+              </Link>
+            )}
 
             <button
               type="button"
@@ -147,7 +203,7 @@ export function Navbar() {
                   </div>
 
                   <ul className="flex flex-col px-2 py-4">
-                    {[...NAV_LINKS, { label: 'Your Account', href: '/account' }].map((link) => (
+                    {NAV_LINKS.map((link) => (
                       <li key={link.href}>
                         <Link
                           href={link.href}
@@ -165,21 +221,81 @@ export function Navbar() {
                     ))}
                   </ul>
 
-                  <div className="mt-auto border-t border-ink-100 p-6">
-                    <a
-                      href={whatsappLink(WHATSAPP_DEFAULT_MESSAGE)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1DA851]"
-                    >
-                      <WhatsAppIcon className="size-4" />
-                      Inquire on WhatsApp
-                    </a>
-                    <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-                      {SITE.address}, {SITE.city} {SITE.pincode}
-                      <br />
-                      {SITE.phoneDisplay}
-                    </p>
+                  <div className="mt-auto">
+                    {/* Account controls */}
+                    <div className="border-t border-ink-100 px-6 py-5">
+                      {signedIn && user ? (
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                              {displayName(user).charAt(0).toUpperCase()}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium">
+                                {displayName(user)}
+                              </span>
+                              <span className="block truncate text-xs text-muted-foreground">
+                                {user.email}
+                              </span>
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Link
+                              href="/account"
+                              onClick={() => setMenuOpen(false)}
+                              className="rounded-md border border-ink-200 px-4 py-2.5 text-center text-sm transition-colors hover:bg-muted"
+                            >
+                              Your account
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void signOutUser();
+                                setMenuOpen(false);
+                              }}
+                              className="flex items-center justify-center gap-2 rounded-md border border-ink-200 px-4 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/8"
+                            >
+                              <LogOut className="size-4" />
+                              Sign out
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          <Link
+                            href="/login"
+                            onClick={() => setMenuOpen(false)}
+                            className="rounded-md bg-primary px-4 py-2.5 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-emerald-soft"
+                          >
+                            Sign in
+                          </Link>
+                          <Link
+                            href="/register"
+                            onClick={() => setMenuOpen(false)}
+                            className="rounded-md border border-ink-200 px-4 py-2.5 text-center text-sm transition-colors hover:bg-muted"
+                          >
+                            Create account
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-ink-100 p-6">
+                      <a
+                        href={whatsappLink(WHATSAPP_DEFAULT_MESSAGE)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1DA851]"
+                      >
+                        <WhatsAppIcon className="size-4" />
+                        Inquire on WhatsApp
+                      </a>
+                      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                        {SITE.address}, {SITE.city} {SITE.pincode}
+                        <br />
+                        {SITE.phoneDisplay}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </SheetContent>

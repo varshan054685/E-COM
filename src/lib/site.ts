@@ -4,7 +4,7 @@
  * every product inquiry button.
  */
 
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919876543210';
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919488758028';
 
 export const SITE = {
   name: 'JGTHS Designer Boutique & Aari Couture',
@@ -19,8 +19,8 @@ export const SITE = {
   pincode: '641048',
   country: 'India',
 
-  phoneDisplay: '+91 98765 43210',
-  phoneHref: '+919876543210',
+  phoneDisplay: '+91 94887 58028',
+  phoneHref: '+919488758028',
   whatsapp: WHATSAPP,
   email: 'hello@jgthscouture.in',
 
