@@ -4,7 +4,7 @@ import { ShieldAlert, TriangleAlert } from 'lucide-react';
 
 import { AuthForm } from '@/components/auth/auth-form';
 import { AuthShell } from '@/components/auth/auth-shell';
-import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { isSupabaseConfigured, isDev } from '@/lib/supabase/env';
 
 export const metadata: Metadata = {
   title: 'Admin Sign In',
@@ -32,8 +32,10 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
       : error === 'unconfigured'
         ? {
             tone: 'warning' as const,
-            title: 'Supabase is not configured',
-            body: 'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local, restart the dev server, then run supabase/schema.sql in the Supabase SQL editor.',
+            title: isDev ? 'Supabase is not configured' : 'Service temporarily unavailable',
+            body: isDev
+              ? 'Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local, restart the dev server, then run supabase/schema.sql in the Supabase SQL editor.'
+              : 'Admin sign-in is temporarily unavailable. Please try again later.',
           }
         : null;
 

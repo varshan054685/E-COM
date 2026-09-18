@@ -39,8 +39,8 @@ function friendly(message: string): string {
 
 function toMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message.includes('not configured')
-      ? 'Sign-in is unavailable: Supabase is not configured yet.'
+    return error.message.includes('not configured') || error.message.includes('unavailable')
+      ? 'Sign-in is currently unavailable. Please try again later.'
       : error.message;
   }
   return 'Something went wrong. Please try again.';

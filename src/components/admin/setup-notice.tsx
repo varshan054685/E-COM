@@ -1,6 +1,8 @@
-import { Database, FileCode2, KeyRound, Terminal } from 'lucide-react';
+import { Database, FileCode2, KeyRound, Terminal, ServerCrash } from 'lucide-react';
 
-const STEPS = [
+import { isDev } from '@/lib/supabase/env';
+
+const DEV_STEPS = [
   {
     Icon: KeyRound,
     title: '1. Create a Supabase project',
@@ -24,6 +26,25 @@ const STEPS = [
 ];
 
 export function SetupNotice({ title = 'Connect Supabase to switch this on' }: { title?: string }) {
+  // In production, show a minimal notice without internal setup details.
+  if (!isDev) {
+    return (
+      <div className="rounded-xl border border-gold-200 bg-gold-100/40 p-6 sm:p-8">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-gold-700">
+            <ServerCrash className="size-4" aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="font-serif text-2xl leading-snug">Service temporarily unavailable</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-500">
+              This section is currently unavailable. Please try again later or contact support if the issue persists.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-xl border border-gold-200 bg-gold-100/40 p-6 sm:p-8">
       <h2 className="font-serif text-2xl leading-snug">{title}</h2>
@@ -33,7 +54,7 @@ export function SetupNotice({ title = 'Connect Supabase to switch this on' }: { 
       </p>
 
       <ol className="mt-7 grid gap-5 sm:grid-cols-2">
-        {STEPS.map(({ Icon, title: stepTitle, body }) => (
+        {DEV_STEPS.map(({ Icon, title: stepTitle, body }) => (
           <li key={stepTitle} className="flex gap-3.5">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-gold-700">
               <Icon className="size-4" aria-hidden="true" />

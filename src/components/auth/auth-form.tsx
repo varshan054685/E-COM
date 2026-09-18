@@ -14,7 +14,7 @@ import {
   signUpWithPassword,
   updatePassword,
 } from '@/lib/supabase/auth-client';
-import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { isSupabaseConfigured, isDev } from '@/lib/supabase/env';
 
 export type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
@@ -277,9 +277,9 @@ export function AuthForm({ mode, redirectTo = '/account' }: AuthFormProps) {
         <p className="flex gap-2.5 rounded-lg border border-gold-200 bg-gold-100/60 p-3.5 text-[11px] leading-relaxed text-ink-500">
           <Info className="mt-0.5 size-3.5 shrink-0 text-gold-700" aria-hidden="true" />
           <span>
-            Supabase is not configured yet, so sign-in is disabled. Add
-            NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local and
-            restart the dev server.
+            {isDev
+              ? 'Supabase is not configured yet, so sign-in is disabled. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local and restart the dev server.'
+              : 'Sign-in is temporarily unavailable. Please try again later or contact support.'}
           </span>
         </p>
       ) : null}

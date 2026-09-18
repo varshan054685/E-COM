@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
-import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { isSupabaseConfigured, isDev } from '@/lib/supabase/env';
 import { slugify } from '@/lib/utils';
 import type { OrderStatus, PaymentStatus } from './queries';
 
@@ -34,7 +34,12 @@ export type ProductInput = {
  */
 async function requireAdmin() {
   if (!isSupabaseConfigured) {
-    return { ok: false as const, error: 'Supabase is not configured.' };
+    return {
+      ok: false as const,
+      error: isDev
+        ? 'Supabase is not configured. Add environment variables and restart.'
+        : 'This service is temporarily unavailable.',
+    };
   }
 
   const supabase = await createClient();
