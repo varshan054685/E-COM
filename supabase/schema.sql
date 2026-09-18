@@ -62,13 +62,18 @@ create table if not exists public.products (
   embroidery       text,
   description      text,
   image_urls       text[] not null default '{}',
+  is_bestseller    boolean not null default false,
   is_active        boolean not null default true,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()
 );
 
-create index if not exists products_category_idx on public.products (category_slug);
-create index if not exists products_stock_idx    on public.products (stock_count);
+-- Idempotent column addition for existing databases
+alter table public.products add column if not exists is_bestseller boolean not null default false;
+
+create index if not exists products_category_idx   on public.products (category_slug);
+create index if not exists products_stock_idx      on public.products (stock_count);
+create index if not exists products_bestseller_idx on public.products (is_bestseller);
 
 create table if not exists public.orders (
   id                 uuid primary key default gen_random_uuid(),

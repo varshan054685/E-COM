@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Store, Users } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Sparkles, Store, Users } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { SITE } from '@/lib/site';
@@ -11,6 +11,7 @@ import { SITE } from '@/lib/site';
 const NAV = [
   { href: '/admin', label: 'Overview', Icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', Icon: Package },
+  { href: '/admin/bestsellers', label: 'Bestsellers', Icon: Sparkles },
   { href: '/admin/orders', label: 'Orders & Tailoring', Icon: ShoppingCart },
   { href: '/admin/users', label: 'Customers', Icon: Users },
 ] as const;

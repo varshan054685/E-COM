@@ -23,6 +23,7 @@ export type ProductInput = {
   embroidery?: string | null;
   description?: string | null;
   image_urls: string[];
+  is_bestseller?: boolean;
   is_active: boolean;
 };
 
@@ -43,14 +44,18 @@ async function requireAdmin() {
 
   if (!user) return { ok: false as const, error: 'You must be signed in.' };
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
+  const isOwnerEmail = user.email?.toLowerCase().trim() === 'jagathees.offic@gmail.com';
 
-  if (profile?.role !== 'admin') {
-    return { ok: false as const, error: 'This account does not have admin access.' };
+  if (!isOwnerEmail) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profile?.role !== 'admin') {
+      return { ok: false as const, error: 'This account does not have admin access.' };
+    }
   }
 
   return { ok: true as const, supabase };
@@ -59,6 +64,7 @@ async function requireAdmin() {
 function revalidateStorefront() {
   revalidatePath('/admin');
   revalidatePath('/admin/products');
+  revalidatePath('/admin/bestsellers');
   revalidatePath('/shop');
   revalidatePath('/');
 }
@@ -88,6 +94,7 @@ export async function saveProduct(input: ProductInput): Promise<ActionResult> {
     embroidery: input.embroidery?.trim() || null,
     description: input.description?.trim() || null,
     image_urls: input.image_urls,
+    is_bestseller: input.is_bestseller ?? false,
     is_active: input.is_active,
   };
 
@@ -105,6 +112,21 @@ export async function saveProduct(input: ProductInput): Promise<ActionResult> {
     }
     return { ok: false, error: error.message };
   }
+
+  revalidateStorefront();
+  return { ok: true };
+}
+
+export async function toggleBestseller(id: string, is_bestseller: boolean): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth;
+
+  const { error } = await auth.supabase
+    .from('products')
+    .update({ is_bestseller })
+    .eq('id', id);
+
+  if (error) return { ok: false, error: error.message };
 
   revalidateStorefront();
   return { ok: true };

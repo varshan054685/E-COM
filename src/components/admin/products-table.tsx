@@ -105,7 +105,14 @@ export function ProductsTable({ products, categories }: ProductsTableProps) {
                   ) : null}
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate font-medium">{product.title}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="truncate font-medium">{product.title}</span>
+                    {product.is_bestseller ? (
+                      <Badge variant="gold" className="px-1.5 py-0 text-[9px]">
+                        Bestseller
+                      </Badge>
+                    ) : null}
+                  </span>
                   <span className="block truncate text-xs text-muted-foreground">
                     {product.subtitle ?? '—'}
                   </span>

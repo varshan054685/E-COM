@@ -132,10 +132,13 @@ export function displayName(user: User | null): string {
   return meta?.full_name?.trim() || user.email || 'Guest';
 }
 
+export const ADMIN_EMAIL = 'jagathees.offic@gmail.com';
+
 /**
- * Checks whether a user ID belongs to an administrator.
+ * Checks whether a user ID or user email belongs to an administrator.
  */
-export async function checkIsAdmin(userId: string): Promise<boolean> {
+export async function checkIsAdmin(userId: string, email?: string): Promise<boolean> {
+  if (email && email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) return true;
   if (!isSupabaseConfigured || !userId) return false;
   try {
     const supabase = createClient();
@@ -179,6 +182,15 @@ export function useSession() {
       }
 
       if (active) setUser(currentUser);
+
+      const isOwnerEmail = currentUser.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
+      if (isOwnerEmail) {
+        if (active) {
+          setIsAdmin(true);
+          setLoading(false);
+        }
+        return;
+      }
 
       try {
         const { data: profile } = await supabase

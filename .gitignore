@@ -31,3 +31,5 @@ yarn-error.log*
 
 # uploads (reference images for custom measurements)
 /public/uploads
+
+/New folder

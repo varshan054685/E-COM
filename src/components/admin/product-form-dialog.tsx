@@ -95,6 +95,7 @@ export function ProductFormDialog({
   const router = useRouter();
   const [images, setImages] = useState<string[]>([]);
   const [madeToOrder, setMadeToOrder] = useState(false);
+  const [isBestseller, setIsBestseller] = useState(false);
   const [active, setActive] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -110,6 +111,7 @@ export function ProductFormDialog({
     setFormError(null);
     setImages(product?.image_urls ?? []);
     setMadeToOrder(product?.is_made_to_order ?? false);
+    setIsBestseller(product?.is_bestseller ?? false);
     setActive(product?.is_active ?? true);
 
     form.reset(
@@ -145,6 +147,7 @@ export function ProductFormDialog({
       embroidery: values.embroidery || null,
       description: values.description || null,
       image_urls: images,
+      is_bestseller: isBestseller,
       is_active: active,
     });
 
@@ -282,14 +285,24 @@ export function ProductFormDialog({
                 <Switch checked={madeToOrder} onCheckedChange={setMadeToOrder} />
               </label>
 
-              <label className="flex cursor-pointer items-center justify-between gap-4">
+              <label className="flex items-center justify-between rounded-lg border border-border p-3.5">
                 <span>
                   <span className="block text-sm font-medium">Active</span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    Inactive products are hidden from the storefront.
+                  <span className="block text-xs text-muted-foreground">
+                    Visible to shoppers across the store.
                   </span>
                 </span>
                 <Switch checked={active} onCheckedChange={setActive} />
+              </label>
+
+              <label className="flex items-center justify-between rounded-lg border border-border p-3.5 sm:col-span-2">
+                <span>
+                  <span className="block text-sm font-medium">Bestseller Spotlight</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Feature this product in the homepage Bestsellers rail.
+                  </span>
+                </span>
+                <Switch checked={isBestseller} onCheckedChange={setIsBestseller} />
               </label>
             </div>
 

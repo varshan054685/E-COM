@@ -42,6 +42,7 @@ export type AdminProduct = {
   embroidery: string | null;
   description: string | null;
   image_urls: string[];
+  is_bestseller?: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;

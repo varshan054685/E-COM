@@ -1,24 +1,21 @@
 import type { Metadata } from 'next';
-import { Package } from 'lucide-react';
 
-import { ProductsTable } from '@/components/admin/products-table';
+import { BestsellersManager } from '@/components/admin/bestsellers-manager';
 import { SetupNotice } from '@/components/admin/setup-notice';
 import { listProducts } from '@/lib/admin/queries';
-import { isSupabaseConfigured } from '@/lib/supabase/env';
-
 import { CATEGORIES, getAllProducts } from '@/lib/catalog';
+import { isSupabaseConfigured } from '@/lib/supabase/env';
 import type { AdminProduct } from '@/lib/admin/constants';
 
-export const metadata: Metadata = { title: 'Products' };
+export const metadata: Metadata = {
+  title: 'Bestsellers Management',
+  description: 'Manage featured bestseller products in the storefront',
+};
 
-const categoryOptions = CATEGORIES.map((c) => ({
-  slug: c.slug,
-  name: c.name,
-}));
-
-export default async function AdminProductsPage() {
+export default async function AdminBestsellersPage() {
   const dbProducts = await listProducts();
 
+  // If Supabase is connected and has products, use them. Otherwise, fall back to the catalog products.
   const products: AdminProduct[] =
     isSupabaseConfigured && dbProducts.length > 0
       ? dbProducts
@@ -42,26 +39,15 @@ export default async function AdminProductsPage() {
           updated_at: new Date().toISOString(),
         }));
 
+  const categoryOptions = CATEGORIES.map((c) => ({
+    slug: c.slug,
+    name: c.name,
+  }));
+
   return (
     <div className="flex flex-col gap-7">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow text-gold-600">Catalogue</p>
-          <h1 className="mt-2 font-serif text-3xl font-medium sm:text-4xl">Products</h1>
-          <p className="mt-2.5 text-sm text-muted-foreground">
-            {`${products.length} ${products.length === 1 ? 'piece' : 'pieces'} across ${categoryOptions.length} categories.`}
-          </p>
-        </div>
-
-        <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Package className="size-3.5" aria-hidden="true" />
-          Low stock flagged at 5 units or fewer
-        </p>
-      </header>
-
       {!isSupabaseConfigured ? <SetupNotice /> : null}
-
-      <ProductsTable products={products} categories={categoryOptions} />
+      <BestsellersManager initialProducts={products} categories={categoryOptions} />
     </div>
   );
 }
