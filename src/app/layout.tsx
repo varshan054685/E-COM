@@ -23,8 +23,31 @@ const inter = Inter({
   display: 'swap',
 });
 
+function getSiteUrl(): URL {
+  const custom = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (custom) {
+    try {
+      return new URL(custom.startsWith('http') ? custom : `https://${custom}`);
+    } catch {
+      // Fall through if invalid
+    }
+  }
+
+  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelProd) {
+    return new URL(`https://${vercelProd}`);
+  }
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    return new URL(`https://${vercelUrl}`);
+  }
+
+  return new URL('http://localhost:3000');
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: getSiteUrl(),
   title: {
     default: `${SITE.name}`,
     template: `%s | ${SITE.shortName}`,
