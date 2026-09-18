@@ -5,6 +5,10 @@
 --  with the official JGTHS boutique product catalog and photography.
 -- ===========================================================================
 
+-- 0. Ensure schema is up to date (adds is_bestseller column if not present)
+alter table public.products add column if not exists is_bestseller boolean not null default false;
+create index if not exists products_bestseller_idx on public.products (is_bestseller);
+
 -- 1. Insert Categories
 insert into public.categories (slug, name, tagline, sort_order)
 values
