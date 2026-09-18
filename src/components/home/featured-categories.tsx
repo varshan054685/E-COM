@@ -10,7 +10,7 @@ export function FeaturedCategories() {
   const categories = getFeaturedCategories();
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 py-18 sm:py-24 lg:px-8">
+    <section className="mx-auto max-w-[1400px] px-6 py-18 sm:py-24 sm:px-8 lg:px-10">
       <Reveal>
         <SectionHeading
           eyebrow="Explore the atelier"

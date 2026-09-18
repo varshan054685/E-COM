@@ -31,7 +31,7 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto w-full max-w-[1400px] px-4 py-20 sm:py-24 lg:px-8">
+      <div className="relative mx-auto w-full max-w-[1400px] px-6 py-20 sm:py-24 sm:px-8 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

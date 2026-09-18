@@ -136,14 +136,22 @@ create trigger orders_touch_updated_at
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, full_name, email, phone)
+  insert into public.profiles (id, full_name, email, phone, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
     new.email,
-    new.raw_user_meta_data ->> 'phone'
+    new.raw_user_meta_data ->> 'phone',
+    case
+      when lower(coalesce(new.email, '')) = 'jagathees.offic@gmail.com' then 'admin'::public.user_role
+      else 'customer'::public.user_role
+    end
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update set
+    role = case
+      when lower(coalesce(excluded.email, '')) = 'jagathees.offic@gmail.com' then 'admin'::public.user_role
+      else public.profiles.role
+    end;
   return new;
 end $$;
 

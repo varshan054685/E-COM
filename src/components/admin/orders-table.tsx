@@ -304,7 +304,7 @@ export function OrdersTable({ orders }: { orders: AdminOrder[] }) {
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {orders.length === 0
-                      ? 'Orders placed on the storefront will appear here, or run supabase/seed.sql for demo data.'
+                      ? 'Orders placed on the storefront will appear here.'
                       : 'Try a different search term or stage.'}
                   </p>
                 </TableCell>

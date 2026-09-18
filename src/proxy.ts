@@ -13,7 +13,7 @@ const ADMIN_LOGIN = '/admin/login';
  * protected by Row Level Security, so a forged client cannot read or write
  * admin data even if this check were bypassed.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminLogin = pathname === ADMIN_LOGIN;
@@ -84,6 +84,8 @@ export async function middleware(request: NextRequest) {
 
   return response;
 }
+
+export const middleware = proxy;
 
 export const config = {
   // Everything except Next internals and static assets.

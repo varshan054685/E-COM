@@ -328,7 +328,7 @@ export function ProductsTable({ products, categories }: ProductsTableProps) {
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {products.length === 0
-                      ? 'Add your first piece, or run supabase/seed.sql for demo data.'
+                      ? 'Add your first piece to get started.'
                       : 'Try a different search term or category.'}
                   </p>
                 </TableCell>

@@ -133,11 +133,30 @@ export function displayName(user: User | null): string {
 }
 
 /**
- * Client session hook. Subscribes to `onAuthStateChange` so the header and
- * account page react to sign-in and sign-out without a page reload.
+ * Checks whether a user ID belongs to an administrator.
+ */
+export async function checkIsAdmin(userId: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !userId) return false;
+  try {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+    return data?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Client session hook. Subscribes to `onAuthStateChange` and fetches profile role
+ * so the topbar and navigation react to admin sign-in and sign-out.
  */
 export function useSession() {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -149,12 +168,42 @@ export function useSession() {
     let active = true;
     const supabase = createClient();
 
+    async function syncProfile(currentUser: User | null) {
+      if (!currentUser) {
+        if (active) {
+          setUser(null);
+          setIsAdmin(false);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (active) setUser(currentUser);
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+
+        if (active) {
+          setIsAdmin(profile?.role === 'admin');
+          setLoading(false);
+        }
+      } catch {
+        if (active) {
+          setIsAdmin(false);
+          setLoading(false);
+        }
+      }
+    }
+
     supabase.auth
       .getUser()
       .then(({ data }) => {
         if (!active) return;
-        setUser(data.user ?? null);
-        setLoading(false);
+        void syncProfile(data.user ?? null);
       })
       .catch(() => {
         if (active) setLoading(false);
@@ -162,8 +211,7 @@ export function useSession() {
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
-      setUser(session?.user ?? null);
-      setLoading(false);
+      void syncProfile(session?.user ?? null);
     });
 
     return () => {
@@ -172,5 +220,5 @@ export function useSession() {
     };
   }, []);
 
-  return { user, loading };
+  return { user, loading, isAdmin };
 }

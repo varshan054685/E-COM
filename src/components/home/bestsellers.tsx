@@ -16,15 +16,18 @@ export function Bestsellers() {
   function scrollRail(direction: 1 | -1) {
     const rail = railRef.current;
     if (!rail) return;
+    const firstCard = rail.querySelector('li');
+    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width + 20 : 320;
+    const cardsToScroll = rail.clientWidth > 900 ? 2 : 1;
     rail.scrollBy({
-      left: direction * Math.min(rail.clientWidth * 0.85, 720),
+      left: direction * cardWidth * cardsToScroll,
       behavior: 'smooth',
     });
   }
 
   return (
-    <section className="bg-ivory-200/60 py-18 sm:py-24">
-      <div className="mx-auto max-w-[1400px] px-4 lg:px-8">
+    <section className="w-full max-w-full overflow-hidden bg-ivory-200/60 py-18 sm:py-24">
+      <div className="mx-auto max-w-[1400px] px-6 sm:px-8 lg:px-10">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading
             eyebrow="Most loved"
@@ -64,20 +67,19 @@ export function Bestsellers() {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Horizontal rail — bleeds to the viewport edge on mobile. */}
-      <ul
-        ref={railRef}
-        className="no-scrollbar mt-11 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 lg:px-8"
-      >
-        {/* `flex` lets every slide stretch to the tallest card in the rail. */}
-        {products.map((product) => (
-          <li key={product.id} className="flex snap-start">
-            <ProductCard product={product} fixedWidth />
-          </li>
-        ))}
-      </ul>
+        {/* Horizontal rail — aligned with container with generous left padding */}
+        <ul
+          ref={railRef}
+          className="no-scrollbar mt-11 flex w-full max-w-full snap-x snap-mandatory gap-5 overflow-x-auto pb-4 pt-1"
+        >
+          {products.map((product) => (
+            <li key={product.id} className="flex shrink-0 snap-start">
+              <ProductCard product={product} fixedWidth />
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }

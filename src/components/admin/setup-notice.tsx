@@ -14,7 +14,7 @@ const STEPS = [
   {
     Icon: Database,
     title: '3. Run the schema',
-    body: 'Open the Supabase SQL Editor and run supabase/schema.sql, then supabase/seed.sql for demo data.',
+    body: 'Open the Supabase SQL Editor and run supabase/schema.sql to set up your tables.',
   },
   {
     Icon: FileCode2,

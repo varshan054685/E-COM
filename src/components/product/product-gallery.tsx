@@ -48,7 +48,7 @@ export function ProductGallery({ images, title, badge }: ProductGalleryProps) {
       </div>
 
       {images.length > 1 ? (
-        <ul className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+        <ul className="no-scrollbar flex w-full max-w-full gap-3 overflow-x-auto pb-1">
           {images.map((image, index) => (
             <li key={image} className="shrink-0">
               <button

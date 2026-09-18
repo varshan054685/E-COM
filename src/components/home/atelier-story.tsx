@@ -27,7 +27,7 @@ const PILLARS = [
 
 export function AtelierStory() {
   return (
-    <section className="mx-auto max-w-[1400px] px-4 py-18 sm:py-24 lg:px-8">
+    <section className="mx-auto max-w-[1400px] px-6 py-18 sm:py-24 sm:px-8 lg:px-10">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <Reveal>
           <div className="relative">

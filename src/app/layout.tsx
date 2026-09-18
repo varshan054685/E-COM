@@ -66,7 +66,9 @@ export default function RootLayout({
         </a>
 
         <Navbar />
-        <main id="main">{children}</main>
+        <main id="main" className="w-full max-w-full overflow-x-clip">
+          {children}
+        </main>
         <Footer />
         <CartDrawer />
         <WhatsAppFab />

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { slugify } from '@/lib/utils';
 import type { OrderStatus, PaymentStatus } from './queries';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -24,16 +25,6 @@ export type ProductInput = {
   image_urls: string[];
   is_active: boolean;
 };
-
-export function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 80);
-}
 
 /**
  * Every action re-checks the caller's identity. The middleware gate and RLS

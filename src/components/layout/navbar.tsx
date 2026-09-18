@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, Search, ShoppingBag, Truck, User } from 'lucide-react';
+import { LogOut, Menu, Search, ShieldCheck, ShoppingBag, Truck, User } from 'lucide-react';
 
 import { SearchDialog } from '@/components/layout/search-dialog';
 import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
@@ -30,7 +30,7 @@ export function Navbar() {
   const hydrated = useHydrated();
   const count = useCartCount();
   const openCart = useCartStore((state) => state.openCart);
-  const { user, loading: sessionLoading } = useSession();
+  const { user, loading: sessionLoading, isAdmin } = useSession();
 
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -73,7 +73,7 @@ export function Navbar() {
       >
         <nav
           aria-label="Main navigation"
-          className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 sm:h-18 lg:px-8"
+          className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-6 sm:h-18 sm:px-8 lg:px-10"
         >
           {/* Logo */}
           <Link
@@ -108,6 +108,21 @@ export function Navbar() {
                 </li>
               );
             })}
+            {isAdmin ? (
+              <li>
+                <Link
+                  href="/admin"
+                  aria-current={isActive('/admin') ? 'page' : undefined}
+                  className={cn(
+                    'relative flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary transition-colors hover:bg-primary/20',
+                    isActive('/admin') && 'border-primary bg-primary text-primary-foreground hover:bg-primary',
+                  )}
+                >
+                  <ShieldCheck className="size-3.5" />
+                  Admin
+                </Link>
+              </li>
+            ) : null}
           </ul>
 
           {/* Actions */}
@@ -145,6 +160,14 @@ export function Navbar() {
                     </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {isAdmin ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="font-medium text-primary">
+                        <ShieldCheck className="size-4 text-primary" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem asChild>
                     <Link href="/account">
                       <User className="size-4" />
@@ -219,6 +242,23 @@ export function Navbar() {
                         </Link>
                       </li>
                     ))}
+                    {isAdmin ? (
+                      <li>
+                        <Link
+                          href="/admin"
+                          onClick={() => setMenuOpen(false)}
+                          className={cn(
+                            'flex items-center gap-2 rounded-lg px-4 py-3.5 font-serif text-xl font-medium transition-colors',
+                            isActive('/admin')
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-primary/10 text-primary hover:bg-primary/20',
+                          )}
+                        >
+                          <ShieldCheck className="size-5" />
+                          Admin Dashboard
+                        </Link>
+                      </li>
+                    ) : null}
                   </ul>
 
                   <div className="mt-auto">
@@ -240,6 +280,16 @@ export function Navbar() {
                             </span>
                           </div>
                           <div className="flex flex-col gap-2">
+                            {isAdmin ? (
+                              <Link
+                                href="/admin"
+                                onClick={() => setMenuOpen(false)}
+                                className="flex items-center justify-center gap-2 rounded-md bg-primary/10 px-4 py-2.5 text-center text-sm font-medium text-primary transition-colors hover:bg-primary/20"
+                              >
+                                <ShieldCheck className="size-4" />
+                                Admin Dashboard
+                              </Link>
+                            ) : null}
                             <Link
                               href="/account"
                               onClick={() => setMenuOpen(false)}
