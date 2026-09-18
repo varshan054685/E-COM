@@ -1,47 +1,53 @@
 import type { Metadata, Viewport } from 'next';
-import { Cormorant_Garamond, Inter } from 'next/font/google';
-import { AppProviders } from '@/components/commerce/providers';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { CartDrawer } from '@/components/commerce/CartDrawer';
-import { SearchDialog } from '@/components/layout/SearchDialog';
-import { Toaster } from '@/components/ui/Toaster';
+import { Inter, Playfair_Display } from 'next/font/google';
+
+import { CartDrawer } from '@/components/commerce/cart-drawer';
+import { Footer } from '@/components/layout/footer';
+import { Navbar } from '@/components/layout/navbar';
+import { WhatsAppFab } from '@/components/layout/whatsapp-fab';
 import { SITE } from '@/lib/site';
+
 import './globals.css';
 
-const serif = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-playfair',
   display: 'swap',
 });
 
-const sans = Inter({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-sans',
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: {
-    default: `${SITE.shortName} — Designer Boutique & Aari Couture`,
+    default: `${SITE.name}`,
     template: `%s | ${SITE.shortName}`,
   },
-  description:
-    'Designer couture, intricate Aari artistry, and custom creations crafted for your most special moments. Boutique located in Coimbatore, Tamil Nadu.',
+  description: SITE.description,
+  keywords: [
+    'Aari work blouse',
+    'designer boutique Coimbatore',
+    'bridal blouse',
+    'hand-painted fabrics',
+    'kids party wear',
+    'custom couture',
+  ],
   openGraph: {
-    siteName: SITE.shortName,
-    title: `${SITE.shortName} — Designer Boutique & Aari Couture`,
-    description:
-      'Designer couture, intricate Aari artistry, and custom creations crafted for your most special moments.',
+    type: 'website',
+    siteName: SITE.name,
+    title: SITE.name,
+    description: SITE.description,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1F1B17',
+  themeColor: '#064e3b',
   width: 'device-width',
   initialScale: 1,
 };
@@ -50,16 +56,20 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body>
-        <AppProviders>
-          <Navbar />
-          <main id="main">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <SearchDialog />
-          <Toaster />
-        </AppProviders>
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+      <body className="min-h-dvh antialiased">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
+
+        <Navbar />
+        <main id="main">{children}</main>
+        <Footer />
+        <CartDrawer />
+        <WhatsAppFab />
       </body>
     </html>
   );

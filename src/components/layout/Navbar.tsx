@@ -3,231 +3,192 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Heart, Menu, Package, Search, ShoppingBag, User } from 'lucide-react';
-import { useAuth } from '@/components/commerce/AuthProvider';
-import { useCart } from '@/components/commerce/CartProvider';
-import { useWishlist } from '@/components/commerce/WishlistProvider';
-import { useSearchDialog } from '@/components/layout/SearchDialog';
-import { useCartDrawer } from '@/components/commerce/CartDrawer';
-import { cn } from '@/lib/utils';
+import { Menu, Search, ShoppingBag, Truck, User } from 'lucide-react';
 
-const primaryLinks = [
-  { label: 'New Arrivals', href: '/shop?sort=newest' },
-  { label: 'Collections', href: '/shop', children: [
-    { label: 'Aari Couture', href: '/collections/aari-couture' },
-    { label: 'Designer Blouses', href: '/collections/designer-blouses' },
-    { label: 'Bridal', href: '/collections/bridal' },
-    { label: 'Sarees', href: '/collections/sarees' },
-    { label: 'Custom Creations', href: '/collections/custom-couture' },
-  ]},
-  { label: 'Aari Atelier', href: '/aari-atelier' },
-  { label: 'Custom Couture', href: '/custom-couture' },
-  { label: 'About', href: '/about' },
-];
+import { SearchDialog } from '@/components/layout/search-dialog';
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { NAV_LINKS, SITE, WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from '@/lib/site';
+import { useHydrated } from '@/lib/use-hydrated';
+import { cn } from '@/lib/utils';
+import { useCartCount, useCartStore } from '@/store/cart';
+
+const iconButton =
+  'relative rounded-full p-2.5 text-ink-700 transition-colors duration-200 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [collectionsOpen, setCollectionsOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
-  const { count } = useCart();
-  const { ids } = useWishlist();
-  const { setOpen: setSearchOpen } = useSearchDialog();
-  const { setOpen: setCartOpen } = useCartDrawer();
+  const hydrated = useHydrated();
+  const count = useCartCount();
+  const openCart = useCartStore((state) => state.openCart);
+
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 24);
-      setHidden(y > 320 && y > lastY);
-      lastY = y;
-    };
+    function onScroll() {
+      setScrolled(window.scrollY > 8);
+    }
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Close the mobile menu whenever the route changes.
   useEffect(() => {
-    setMobileOpen(false);
-    setCollectionsOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileOpen]);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <header
-      className={cn(
-        'fixed inset-x-0 top-0 z-[100] transition-all duration-300',
-        scrolled || hidden || mobileOpen
-          ? 'bg-ivory-50/95 backdrop-blur-md border-b border-ink/8'
-          : 'bg-transparent border-b border-transparent',
-        hidden && !mobileOpen && '-translate-y-full',
-      )}
-    >
-      <nav aria-label="Primary" className="mx-auto max-w-shell px-4 sm:px-6 lg:px-10">
-        <div className="flex h-16 sm:h-[72px] items-center justify-between gap-4">
-          {/* Mobile menu button */}
-          <button
-            className="lg:hidden flex h-10 w-10 -ml-2 items-center justify-center text-ink"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+    <>
+      {/* Announcement strip — scrolls away, the nav below stays pinned. */}
+      <div className="bg-primary text-primary-foreground">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2.5 text-center">
+          <Truck className="size-3.5 shrink-0 opacity-80" aria-hidden="true" />
+          <p className="text-[10px] tracking-[0.16em] uppercase sm:text-[11px]">
+            Complimentary shipping above ₹15,000 · Studio appointments in {SITE.city}
+          </p>
+        </div>
+      </div>
 
+      <header
+        className={cn(
+          'sticky top-0 z-40 border-b border-ink-100 bg-background/80 backdrop-blur-md transition-shadow duration-300',
+          scrolled && 'shadow-soft',
+        )}
+      >
+        <nav
+          aria-label="Main navigation"
+          className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 sm:h-18 lg:px-8"
+        >
           {/* Logo */}
-          <Link href="/" className="group flex flex-col leading-none">
-            <span className="font-serif text-2xl sm:text-[26px] font-semibold tracking-[0.18em] text-charcoal-900">
-              JGTHS
+          <Link
+            href="/"
+            className="flex shrink-0 items-baseline gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+          >
+            <span className="font-serif text-xl font-semibold tracking-[0.16em] sm:text-2xl">
+              {SITE.shortName}
             </span>
-            <span className="mt-1 hidden sm:block text-[8.5px] uppercase tracking-widestX text-gold-600">
-              Designer Boutique · Aari Couture
-            </span>
+            <span className="eyebrow hidden text-[9px] text-gold-600 sm:inline">Aari Couture</span>
           </Link>
 
-          {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-7">
-            {primaryLinks.map((link) =>
-              link.children ? (
-                <div key={link.label} className="relative"
-                  onMouseEnter={() => setCollectionsOpen(true)}
-                  onMouseLeave={() => setCollectionsOpen(false)}
-                >
-                  <Link href={link.href} className="nav-link text-[13px] font-medium uppercase tracking-[0.1em] text-charcoal-800">
-                    {link.label}
-                  </Link>
-                  <AnimatePresence>
-                    {collectionsOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        transition={{ duration: 0.18 }}
-                        className="absolute left-1/2 -translate-x-1/2 top-full pt-4"
-                      >
-                        <div className="min-w-56 border border-ink/10 bg-ivory-50 py-3 shadow-lift">
-                          {link.children.map((child) => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className="block px-6 py-2.5 text-sm text-charcoal-700 hover:bg-ivory-100 hover:text-charcoal-900 transition"
-                            >
-                              {child.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
+          {/* Centred links */}
+          <ul className="hidden items-center gap-9 lg:flex">
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative py-2 text-sm tracking-wide transition-colors duration-200',
+                      active ? 'text-foreground' : 'text-ink-500 hover:text-foreground',
                     )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <Link key={link.href} href={link.href} className="nav-link text-[13px] font-medium uppercase tracking-[0.1em] text-charcoal-800">
-                  {link.label}
-                </Link>
-              ),
-            )}
-          </div>
+                  >
+                    {link.label}
+                    {active ? (
+                      <span className="absolute inset-x-0 -bottom-0.5 h-px bg-gold-400" />
+                    ) : null}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
           {/* Actions */}
           <div className="flex items-center gap-0.5 sm:gap-1">
             <button
+              type="button"
               onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="flex h-10 w-10 lg:h-9 lg:w-10 items-center justify-center text-charcoal-800 hover:bg-ink/5 transition"
+              className={iconButton}
+              aria-label="Search products"
             >
-              <Search className="h-[19px] w-[19px]" strokeWidth={1.8} />
+              <Search className="size-5" />
             </button>
-            <Link
-              href="/wishlist"
-              aria-label={`Wishlist (${ids.length})`}
-              className="relative hidden sm:flex h-10 w-10 lg:h-9 lg:w-10 items-center justify-center text-charcoal-800 hover:bg-ink/5 transition"
-            >
-              <Heart className="h-[19px] w-[19px]" strokeWidth={1.8} />
-              {ids.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-gold-500 px-0.5 text-[9px] font-bold text-charcoal-900">
-                  {ids.length}
-                </span>
-              )}
-            </Link>
-            <Link
-              href={user ? '/account' : '/login'}
-              aria-label={user ? 'Account' : 'Sign in'}
-              className="hidden sm:flex h-10 w-10 lg:h-9 lg:w-10 items-center justify-center text-charcoal-800 hover:bg-ink/5 transition"
-            >
-              <User className="h-[19px] w-[19px]" strokeWidth={1.8} />
-            </Link>
-            <button
-              onClick={() => setCartOpen(true)}
-              aria-label={`Cart (${count})`}
-              className="relative flex h-10 w-10 lg:h-9 lg:w-10 items-center justify-center text-charcoal-800 hover:bg-ink/5 transition"
-            >
-              <ShoppingBag className="h-[19px] w-[19px]" strokeWidth={1.8} />
-              {count > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-charcoal-900 px-0.5 text-[9px] font-bold text-ivory-100">
-                  {count}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </nav>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            className="fixed inset-0 top-16 z-[105] lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="absolute inset-0 bg-charcoal-900/50" onClick={() => setMobileOpen(false)} />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-ivory-50 border-r border-ink/10 p-6 pt-3 overflow-y-auto"
+            <Link href="/account" className={cn(iconButton, 'hidden sm:inline-flex')} aria-label="Your account">
+              <User className="size-5" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={openCart}
+              className={iconButton}
+              aria-label={
+                hydrated && count > 0 ? `Open bag, ${count} items` : 'Open shopping bag'
+              }
             >
-              <div className="space-y-1">
-                {primaryLinks.map((link) =>
-                  link.children ? (
-                    <div key={link.label} className="pt-2">
-                      <Link href={link.href} className="block pb-1 font-serif text-2xl text-charcoal-900">
-                        {link.label}
-                      </Link>
-                      <div className="flex flex-col gap-1 pl-1 mt-1 border-l border-ink/10">
-                        {link.children.map((child) => (
-                          <Link key={child.href} href={child.href} className="py-1.5 text-sm tracking-[0.08em] uppercase text-ink-muted">
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Link key={link.href} href={link.href} className="block py-2.5 font-serif text-2xl text-charcoal-900">
-                      {link.label}
-                    </Link>
-                  ),
-                )}
-              </div>
-              <div className="mt-8 flex flex-wrap gap-6 border-t border-ink/10 pt-6">
-                <Link href="/wishlist" className="flex items-center gap-2 text-sm text-charcoal-700"><Heart className="h-4 w-4" /> Wishlist {ids.length > 0 && `(${ids.length})`}</Link>
-                <Link href={user ? '/account' : '/login'} className="flex items-center gap-2 text-sm text-charcoal-700"><User className="h-4 w-4" /> {user ? 'Account' : 'Sign in'}</Link>
-                {user && user.role === 'ADMIN' && <Link href="/admin" className="flex items-center gap-2 text-sm text-charcoal-700"><Package className="h-4 w-4" /> Admin</Link>}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+              <ShoppingBag className="size-5" />
+              {hydrated && count > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-accent-foreground tabular-nums">
+                  {count > 9 ? '9+' : count}
+                </span>
+              ) : null}
+            </button>
+
+            {/* Mobile menu */}
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <button type="button" className={cn(iconButton, 'lg:hidden')} aria-label="Open menu">
+                  <Menu className="size-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent className="max-w-xs">
+                <div className="flex h-full flex-col">
+                  <div className="border-b border-ink-100 px-6 py-5 pr-16">
+                    <SheetTitle className="font-serif text-lg tracking-[0.16em]">
+                      {SITE.shortName}
+                    </SheetTitle>
+                    <p className="eyebrow mt-1 text-[9px] text-gold-600">Aari Couture</p>
+                  </div>
+
+                  <ul className="flex flex-col px-2 py-4">
+                    {[...NAV_LINKS, { label: 'Your Account', href: '/account' }].map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          onClick={() => setMenuOpen(false)}
+                          className={cn(
+                            'block rounded-lg px-4 py-3.5 font-serif text-xl transition-colors',
+                            isActive(link.href)
+                              ? 'text-foreground'
+                              : 'text-ink-500 hover:bg-muted hover:text-foreground',
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto border-t border-ink-100 p-6">
+                    <a
+                      href={whatsappLink(WHATSAPP_DEFAULT_MESSAGE)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-md bg-[#25D366] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#1DA851]"
+                    >
+                      <WhatsAppIcon className="size-4" />
+                      Inquire on WhatsApp
+                    </a>
+                    <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                      {SITE.address}, {SITE.city} {SITE.pincode}
+                      <br />
+                      {SITE.phoneDisplay}
+                    </p>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </nav>
+      </header>
+
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+    </>
   );
 }

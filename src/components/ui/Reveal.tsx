@@ -1,63 +1,40 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { motion, useReducedMotion } from 'framer-motion';
+import type { ReactNode } from 'react';
 
-export function Reveal({
-  children,
-  className,
-  delay = 0,
-  as: Tag = 'div',
-}: {
+type RevealProps = {
   children: ReactNode;
   className?: string;
+  /** Seconds to stagger this element behind its siblings. */
   delay?: number;
-  as?: keyof React.JSX.IntrinsicElements;
-}) {
-  const ref = useRef<HTMLElement | null>(null);
-  const [visible, setVisible] = useState(false);
+  /** Distance travelled on entry. */
+  y?: number;
+  as?: 'div' | 'li' | 'section';
+};
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+/**
+ * Fades and lifts content into view once, when it first enters the viewport.
+ * Honours `prefers-reduced-motion` by rendering the content statically.
+ */
+export function Reveal({ children, className, delay = 0, y = 22, as = 'div' }: RevealProps) {
+  const prefersReduced = useReducedMotion();
+  const MotionTag = motion[as];
 
-  const Component = Tag as React.ElementType;
+  if (prefersReduced) {
+    const Tag = as;
+    return <Tag className={className}>{children}</Tag>;
+  }
 
   return (
-    <Component
-      ref={ref}
-      className={cn('transition-all duration-700 ease-out-expo will-change-transform', className)}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(24px)',
-        transitionDelay: `${delay}ms`,
-      }}
+    <MotionTag
+      className={className}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
-    </Component>
+    </MotionTag>
   );
-}
-
-export function StaggerGroup({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
 }

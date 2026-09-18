@@ -1,76 +1,99 @@
 'use client';
 
-import { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import * as React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
-export function Dialog({
-  open,
-  onClose,
-  children,
-  className,
-  labelledBy,
-}: {
-  open: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  className?: string;
-  labelledBy?: string;
-}) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open, onClose]);
+const Dialog = DialogPrimitive.Root;
+const DialogTrigger = DialogPrimitive.Trigger;
+const DialogClose = DialogPrimitive.Close;
+const DialogPortal = DialogPrimitive.Portal;
 
+function DialogOverlay({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <div
-            className="absolute inset-0 bg-charcoal-900/60 backdrop-blur-sm"
-            onClick={onClose}
-            aria-hidden
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={labelledBy}
-            className={cn(
-              'relative w-full max-w-lg bg-ivory-50 border border-ink/10 shadow-lift max-h-[90vh] overflow-y-auto scrollbar-thin',
-              className,
-            )}
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <button
-              onClick={onClose}
-              aria-label="Close dialog"
-              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/5 transition"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <DialogPrimitive.Overlay
+      className={cn('fixed inset-0 z-50 bg-ink-900/45 backdrop-blur-[2px] data-[state=open]:animate-overlay-in', className)}
+      {...props}
+    />
   );
 }
+
+function DialogContent({
+  className,
+  children,
+  showClose = true,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
+  return (
+    <DialogPortal>
+      <DialogOverlay className="flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
+        <DialogPrimitive.Content
+          className={cn(
+            'relative z-50 my-auto w-full max-w-lg rounded-xl border border-ink-100 bg-card p-6 shadow-lift focus:outline-none data-[state=open]:animate-dialog-in sm:p-8',
+            className,
+          )}
+          {...props}
+        >
+          {children}
+          {showClose ? (
+            <DialogPrimitive.Close
+              className="absolute top-4 right-4 rounded-full p-2 text-ink-400 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label="Close"
+            >
+              <X className="size-4" />
+            </DialogPrimitive.Close>
+          ) : null}
+        </DialogPrimitive.Content>
+      </DialogOverlay>
+    </DialogPortal>
+  );
+}
+
+function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div className={cn('mb-5 flex flex-col gap-2 pr-8', className)} {...props} />;
+}
+
+function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      className={cn('mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end', className)}
+      {...props}
+    />
+  );
+}
+
+function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      className={cn('font-serif text-2xl leading-tight font-medium', className)}
+      {...props}
+    />
+  );
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      className={cn('text-sm leading-relaxed text-muted-foreground', className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Dialog,
+  DialogTrigger,
+  DialogClose,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+};

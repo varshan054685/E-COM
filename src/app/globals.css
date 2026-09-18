@@ -1,72 +1,200 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ *  Aari Couture — design tokens
+ *  Traditional Indian heritage meets modern minimalist luxury.
+ * ------------------------------------------------------------------ */
 
 :root {
-  --color-ivory: #f7f1e7;
-  --color-ink: #1f1b17;
+  /* Surfaces — an off-white canvas so the clothing carries the colour. */
+  --background: #fafaf9;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --card-foreground: #1c1917;
+  --popover: #ffffff;
+  --popover-foreground: #1c1917;
+
+  /* Rich, luxurious accents. */
+  --primary: #064e3b; /* emerald green  */
+  --primary-foreground: #fdfcfa;
+  --secondary: #831843; /* deep magenta   */
+  --secondary-foreground: #fdfcfa;
+  --accent: #d4af37; /* muted gold     */
+  --accent-foreground: #1c1917;
+
+  --muted: #f4f1ea;
+  --muted-foreground: #78716c;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fdfcfa;
+
+  --border: #e7e5e4;
+  --input: #ded9d2;
+  --ring: #d4af37;
+
+  --radius: 0.75rem;
 }
 
-html {
-  scroll-behavior: smooth;
+@theme inline {
+  /* Semantic tokens — every primitive styles against these. */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand ramps, for tints and editorial detail work. */
+  --color-ivory-50: #fdfcfa;
+  --color-ivory-100: #fafaf9;
+  --color-ivory-200: #f4f1ea;
+  --color-ivory-300: #ebe6da;
+
+  --color-ink-100: #e7e5e4;
+  --color-ink-200: #d6d3d1;
+  --color-ink-300: #a8a29e;
+  --color-ink-400: #78716c;
+  --color-ink-500: #57534e;
+  --color-ink-700: #332e2a;
+  --color-ink-900: #1c1917;
+
+  --color-emerald-deep: #064e3b;
+  --color-emerald-soft: #0c6b52;
+  --color-magenta-deep: #831843;
+  --color-magenta-soft: #a8386a;
+
+  --color-gold-100: #f8f1dc;
+  --color-gold-200: #eedcae;
+  --color-gold-300: #e3c87f;
+  --color-gold-400: #d4af37;
+  --color-gold-600: #b08f2a;
+  --color-gold-700: #8a6f20;
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
+
+  /* Shape + depth */
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --shadow-soft: 0 10px 40px -14px rgb(28 25 23 / 0.14);
+  --shadow-lift: 0 28px 60px -24px rgb(28 25 23 / 0.3);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-fade-up: fade-up 0.7s var(--ease-out-expo) both;
+
+  --animate-overlay-in: overlay-in 220ms ease-out both;
+  --animate-dialog-in: dialog-in 260ms var(--ease-out-expo) both;
+  --animate-drawer-in: drawer-in 340ms var(--ease-out-expo) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes overlay-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 }
 
-body {
-  @apply bg-ivory-100 text-ink font-sans antialiased;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
-::selection {
-  background-color: #1f1b17;
-  color: #f7f1e7;
+/* Horizontally scrollable rails (bestsellers carousel, thumbnail strips). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* Focus visibility for accessibility */
-:focus-visible {
-  outline: 2px solid #af8d4b;
-  outline-offset: 2px;
-}
-
-/* Elegant thin scrollbar for panels */
-.scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: #c4bbb0 transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar {
-  width: 5px;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #c4bbb0;
-  border-radius: 9999px;
-}
-
-/* Editorial baseline */
-.editorial-eyebrow {
-  @apply text-[11px] font-medium uppercase tracking-widestX text-gold-600;
-}
-
-.tracking-widestX {
-  letter-spacing: 0.2em;
-}
-
-/* Underline animation for nav links */
-.nav-link {
-  position: relative;
-}
-.nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  height: 1px;
-  width: 100%;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.nav-link:hover::after,
-.nav-link:focus-visible::after {
-  transform: scaleX(1);
-  transform-origin: left;
+/* Small uppercase eyebrow used above every section heading. */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }

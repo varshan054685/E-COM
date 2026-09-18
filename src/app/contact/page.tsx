@@ -1,136 +1,142 @@
-'use client';
-
-import { useState } from 'react';
 import type { Metadata } from 'next';
-import { Clock, Loader2, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
-import { SITE, whatsappLink } from '@/lib/site';
-import { Button } from '@/components/ui/Button';
-import { Field, Input, Textarea } from '@/components/ui/Field';
-import { toast } from '@/components/ui/Toaster';
+import Link from 'next/link';
+import { Clock, Mail, MapPin, Navigation, Phone } from 'lucide-react';
+
+import { WhatsAppIcon } from '@/components/icons/whatsapp-icon';
+import { PageHero } from '@/components/layout/page-hero';
+import { Button } from '@/components/ui/button';
+import { Reveal } from '@/components/ui/reveal';
+import { SITE, WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from '@/lib/site';
+
+export const metadata: Metadata = {
+  title: 'Contact & Appointments',
+  description: `Visit the ${SITE.name} studio in ${SITE.city}, or reach us on WhatsApp, phone and email for orders and appointments.`,
+};
+
+const MAP_QUERY = encodeURIComponent(
+  `${SITE.address}, ${SITE.city}, ${SITE.state} ${SITE.pincode}`,
+);
+
+const DETAILS = [
+  {
+    Icon: MapPin,
+    label: 'Studio',
+    lines: [SITE.address, `${SITE.city}, ${SITE.state} ${SITE.pincode}`, SITE.country],
+  },
+  {
+    Icon: Phone,
+    label: 'Phone',
+    lines: [SITE.phoneDisplay],
+    href: `tel:${SITE.phoneHref}`,
+  },
+  {
+    Icon: Mail,
+    label: 'Email',
+    lines: [SITE.email],
+    href: `mailto:${SITE.email}`,
+  },
+  {
+    Icon: Clock,
+    label: 'Studio hours',
+    lines: SITE.hours.map((entry) => `${entry.days} · ${entry.time}`),
+  },
+];
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setSending(true);
-    try {
-      const res = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, type: 'contact' }),
-      });
-      const j = await res.json();
-      if (res.ok) {
-        setSent(true);
-        toast('Message sent', { description: 'The boutique will reply within a day.', variant: 'success' });
-      } else {
-        toast(j.error || 'Could not send your message', { variant: 'error' });
-      }
-    } catch {
-      toast('Something went wrong. Please try WhatsApp instead.', { variant: 'error' });
-    } finally {
-      setSending(false);
-    }
-  }
-
   return (
-    <div className="bg-ivory-100">
-      <div className="mx-auto max-w-shell px-4 sm:px-6 lg:px-10 pt-32 pb-20">
-        <p className="editorial-eyebrow mb-4">Contact</p>
-        <h1 className="font-serif text-5xl text-charcoal-900 sm:text-6xl">Say hello</h1>
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-muted">
-          Questions about a piece, a fitting, or a custom order? The boutique replies fastest
-          on WhatsApp — and always in person.
-        </p>
+    <>
+      <PageHero
+        eyebrow="Come see us"
+        title="Visit the studio"
+        description="Appointments are recommended so we can give you the full table — fabric books, embroidery samples and undivided attention."
+      >
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button asChild variant="whatsapp">
+            <a
+              href={whatsappLink(WHATSAPP_DEFAULT_MESSAGE)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <WhatsAppIcon className="size-4" />
+              Book on WhatsApp
+            </a>
+          </Button>
+          <Button asChild variant="outline">
+            <a href={`tel:${SITE.phoneHref}`}>
+              <Phone className="size-4" />
+              Call the studio
+            </a>
+          </Button>
+        </div>
+      </PageHero>
 
-        <div className="mt-14 grid gap-10 lg:grid-cols-12">
-          {/* Info column */}
-          <div className="space-y-8 lg:col-span-5">
-            <div className="border border-ink/10 bg-ivory-50 p-7">
-              <ul className="space-y-5 text-[15px]">
-                <li className="flex gap-4">
-                  <MapPin className="mt-1 h-5 w-5 shrink-0 text-gold-600" />
-                  <span className="text-ink-muted">{SITE.fullAddress}</span>
-                </li>
-                <li className="flex gap-4">
-                  <Phone className="mt-1 h-5 w-5 shrink-0 text-gold-600" />
-                  <a href={`tel:${SITE.phone.replace(/\s/g, '')}`} className="text-charcoal-900 hover:underline">{SITE.phone}</a>
-                </li>
-                <li className="flex gap-4">
-                  <MessageCircle className="mt-1 h-5 w-5 shrink-0 text-gold-600" />
-                  <a
-                    href={whatsappLink("Hi JGTHS, I'd like to know more about your boutique and couture services.")}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-charcoal-900 hover:underline"
-                  >
-                    Chat with the boutique on WhatsApp
-                  </a>
-                </li>
-                <li className="flex gap-4">
-                  <Mail className="mt-1 h-5 w-5 shrink-0 text-gold-600" />
-                  <a href={`mailto:${SITE.email}`} className="text-charcoal-900 hover:underline">{SITE.email}</a>
-                </li>
-                <li className="flex gap-4">
-                  <Clock className="mt-1 h-5 w-5 shrink-0 text-gold-600" />
-                  <span className="text-ink-muted">
-                    {SITE.hours.map((h) => (
-                      <span key={h.days} className="block">{h.days}: {h.time}</span>
-                    ))}
+      <section className="mx-auto max-w-[1400px] px-4 py-16 sm:py-20 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-14">
+          <Reveal>
+            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {DETAILS.map(({ Icon, label, lines, href }) => (
+                <li key={label} className="rounded-xl border border-ink-100 bg-card p-6">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-primary/8 text-primary">
+                    <Icon className="size-4.5" aria-hidden="true" />
                   </span>
+                  <p className="eyebrow mt-4 text-ink-400">{label}</p>
+                  <div className="mt-2 flex flex-col gap-0.5 text-sm leading-relaxed text-ink-500">
+                    {href ? (
+                      <a
+                        href={href}
+                        className="transition-colors hover:text-foreground hover:underline hover:underline-offset-4"
+                      >
+                        {lines[0]}
+                      </a>
+                    ) : (
+                      lines.map((line) => <span key={line}>{line}</span>)
+                    )}
+                  </div>
                 </li>
-              </ul>
-            </div>
+              ))}
+            </ul>
 
-            <div className="border border-ink/10 overflow-hidden">
+            <div className="mt-8 rounded-xl border border-gold-200 bg-gold-100/50 p-6">
+              <p className="font-serif text-lg">Planning a wedding trousseau?</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-500">
+                Bring your sarees and inspiration images. Trousseau consultations take
+                about 90 minutes and we recommend booking two to three months ahead of
+                your date.
+              </p>
+              <Button asChild variant="gold" size="sm" className="mt-5">
+                <Link href="/custom-orders">Plan a consultation</Link>
+              </Button>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.08}>
+            <div className="overflow-hidden rounded-xl border border-ink-100 bg-card shadow-soft">
               <iframe
-                title="JGTHS Designer Boutique location"
-                src={SITE.mapsEmbed}
-                className="h-72 w-full"
+                title={`Map showing ${SITE.name} in ${SITE.city}`}
+                src={`https://www.google.com/maps?q=${MAP_QUERY}&output=embed`}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
+                className="h-[22rem] w-full border-0 lg:h-[30rem]"
               />
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink-100 p-5">
+                <p className="text-sm text-muted-foreground">
+                  {SITE.address}, {SITE.city}
+                </p>
+                <Button asChild variant="ghost" size="sm" className="gap-2">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Navigation className="size-3.5" />
+                    Get directions
+                  </a>
+                </Button>
+              </div>
             </div>
-          </div>
-
-          {/* Form column */}
-          <div className="lg:col-span-7">
-            <div className="border border-ink/10 bg-ivory-50 p-7 sm:p-10">
-              {sent ? (
-                <div className="py-10 text-center">
-                  <MessageCircle className="mx-auto h-8 w-8 text-gold-600" />
-                  <h2 className="mt-4 font-serif text-3xl text-charcoal-900">Message received</h2>
-                  <p className="mt-3 text-sm text-ink-muted">
-                    Thank you — we read every message. Expect a reply within one working day.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={submit} className="space-y-5">
-                  <h2 className="font-serif text-2xl text-charcoal-900">Write to us</h2>
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <Field label="Your name" required>
-                      <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" />
-                    </Field>
-                    <Field label="Email" required>
-                      <Input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" />
-                    </Field>
-                  </div>
-                  <Field label="Phone (optional)">
-                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" />
-                  </Field>
-                  <Field label="Message" required>
-                    <Textarea required rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Tell us about the piece or occasion…" />
-                  </Field>
-                  <Button type="submit" isLoading={sending} size="lg">Send message</Button>
-                </form>
-              )}
-            </div>
-          </div>
+          </Reveal>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

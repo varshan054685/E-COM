@@ -1,96 +1,104 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getProducts, getProductFacets } from '@/lib/catalog';
-import { buildSeo } from '@/lib/seo';
-import { ProductGrid } from '@/components/product/ProductGrid';
-import { ShopToolbar } from '@/components/product/ShopToolbar';
-import { ProductGridSkeleton } from '@/components/ui/Skeleton';
-import { Suspense } from 'react';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { SearchX } from 'lucide-react';
-import { LinkButton } from '@/components/ui/Button';
+import Link from 'next/link';
 
-type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+import { ProductGrid } from '@/components/product/product-grid';
+import { ShopFilters } from '@/components/product/shop-filters';
+import { Button } from '@/components/ui/button';
+import {
+  CATEGORIES,
+  COLOR_FILTERS,
+  PRICE_BANDS,
+  PRODUCTS,
+  getAllColorNames,
+} from '@/lib/catalog';
+import {
+  applyFilters,
+  categoryCounts,
+  hasActiveFacets,
+  parseFilters,
+  type RawSearchParams,
+} from '@/lib/shop-filtering';
 
-export const metadata: Metadata = buildSeo({
-  title: 'Shop the Collection',
+export const metadata: Metadata = {
+  title: 'Shop All',
   description:
-    'Shop handcrafted Aari couture, designer blouses, bridal couture and curated sarees from JGTHS Designer Boutique, Coimbatore.',
-  path: '/shop',
-});
+    'Browse bridal Aari blouses, signature sarees, hand-painted fabrics and kids party wear — handcrafted in Coimbatore.',
+};
 
-export default async function ShopPage({ searchParams }: PageProps) {
-  const sp = await searchParams;
-  const get = (k: string) => (typeof sp[k] === 'string' ? (sp[k] as string) : Array.isArray(sp[k]) ? (sp[k] as string[])[0] : '');
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawSearchParams>;
+}) {
+  const params = await searchParams;
+  const filters = parseFilters(params);
+  const products = applyFilters(filters);
 
-  const [products, facets] = await Promise.all([
-    getProducts(
-      {
-        q: get('q'),
-        categorySlug: get('cat') || undefined,
-        minPrice: get('min') ? Number(get('min')) : undefined,
-        maxPrice: get('max') ? Number(get('max')) : undefined,
-        sizes: get('size') ? get('size').split(',').filter(Boolean) : undefined,
-        colors: get('color') ? get('color').split(',').filter(Boolean) : undefined,
-        craftType: get('craft') || undefined,
-        occasion: get('occasion') || undefined,
-        availability: (get('avail') as 'in-stock' | 'made-to-order') || undefined,
-        sort: get('sort') || 'featured',
-      },
-    ),
-    getProductFacets(),
-  ]);
+  const counts = categoryCounts();
+  const categories = CATEGORIES.map((category) => ({
+    slug: category.slug,
+    name: category.name,
+    count: counts.find((entry) => entry.slug === category.slug)?.count ?? 0,
+  }));
 
-  const q = get('q');
+  const priceBands = PRICE_BANDS.map((band) => ({ id: band.id, label: band.label }));
+
+  // Only offer colours that actually appear in the catalogue.
+  const colors = getAllColorNames().map((name) => ({
+    name,
+    hex: COLOR_FILTERS.find((swatch) => swatch.name === name)?.hex ?? '#e7e5e4',
+  }));
 
   return (
-    <div className="pt-28 lg:pt-36 pb-20">
-      <div className="mx-auto max-w-shell px-4 sm:px-6 lg:px-10">
-        <header className="max-w-2xl">
-          <p className="editorial-eyebrow mb-3">The Collection</p>
-          <h1 className="font-serif text-4xl lg:text-5xl text-charcoal-900">
-            {q ? <>Search: <span className="italic">“{q}”</span></> : 'Shop'}
-          </h1>
-          <p className="mt-4 text-[15px] text-ink-muted">
-            {q
-              ? `Pieces matching “${q}”.`
-              : 'Handcrafted couture, embroidery and curated drapes — every piece made or styled at our Coimbatore boutique.'}
+    <div className="mx-auto max-w-[1400px] px-4 py-12 sm:py-16 lg:px-8">
+      <header className="max-w-2xl">
+        <p className="eyebrow text-gold-600">The collection</p>
+        <h1 className="mt-3 font-serif text-4xl leading-tight font-medium text-balance sm:text-5xl">
+          Shop All
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+          Every piece is finished by hand in our studio. Looking for something that
+          does not exist yet?{' '}
+          <Link
+            href="/custom-orders"
+            className="text-foreground underline underline-offset-4 transition-colors hover:text-gold-700"
+          >
+            Commission it
+          </Link>
+          .
+        </p>
+      </header>
+
+      <div className="mt-10 grid grid-cols-1 gap-10 lg:mt-14 lg:grid-cols-[15rem_1fr] lg:gap-12">
+        <ShopFilters
+          active={filters}
+          categories={categories}
+          priceBands={priceBands}
+          colors={colors}
+          resultCount={products.length}
+        />
+
+        <div>
+          <p className="mb-8 hidden text-sm text-muted-foreground lg:block">
+            Showing <span className="font-medium text-foreground">{products.length}</span> of{' '}
+            {PRODUCTS.length} pieces
           </p>
-        </header>
 
-        <div className="mt-10 flex gap-8">
-          <aside className="hidden lg:block w-60 shrink-0" aria-label="Filters">
-            <Suspense fallback={<div className="space-y-6"><div className="h-64 bg-charcoal-100/60 animate-pulse" /></div>}>
-              <ShopToolbar facets={facets} />
-            </Suspense>
-          </aside>
-
-          <div className="flex-1 min-w-0">
-            <div className="lg:hidden">
-              <Suspense fallback={null}>
-                <ShopToolbar facets={facets} />
-              </Suspense>
+          {products.length > 0 ? (
+            <ProductGrid products={products} />
+          ) : (
+            <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-ink-200 px-6 py-20 text-center">
+              <h2 className="font-serif text-2xl">No pieces match those filters</h2>
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                {hasActiveFacets(filters)
+                  ? 'Try widening your price range or removing a colour.'
+                  : 'The collection is being restocked — please check back shortly.'}
+              </p>
+              <Button asChild variant="gold" className="mt-2">
+                <Link href="/shop">Clear all filters</Link>
+              </Button>
             </div>
-            <div className="hidden lg:block mt-px" />
-
-            <div className="mt-7 lg:mt-0">
-              <Suspense fallback={<ProductGridSkeleton count={8} />}>
-                {products.length === 0 ? (
-                  <EmptyState
-                    icon={<SearchX className="h-8 w-8" strokeWidth={1.3} />}
-                    title="Nothing found, just yet"
-                    description="Try a different word, or browse the full collection — a piece may be waiting."
-                    action={<LinkButton href="/shop" variant="outline">View all pieces</LinkButton>}
-                  />
-                ) : (
-                  <p className="mb-6 text-xs uppercase tracking-widest text-ink-faint">
-                    {products.length} {products.length === 1 ? 'piece' : 'pieces'}
-                  </p>
-                )}
-                <ProductGrid products={products} columns={3} />
-              </Suspense>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

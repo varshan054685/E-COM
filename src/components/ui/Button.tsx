@@ -1,96 +1,54 @@
-'use client';
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
 
-import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 
-type ButtonVariant =
-  | 'primary'
-  | 'outline'
-  | 'ghost'
-  | 'dark'
-  | 'gold'
-  | 'link';
-type ButtonSize = 'sm' | 'md' | 'lg';
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-all duration-300 ease-out-expo disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+  {
+    variants: {
+      variant: {
+        /** Emerald — the primary commerce action. */
+        default:
+          'bg-primary text-primary-foreground shadow-soft hover:bg-emerald-soft hover:shadow-lift active:scale-[0.99]',
+        /** Muted gold — editorial / secondary emphasis. */
+        gold: 'bg-accent text-accent-foreground shadow-soft hover:bg-gold-600 hover:shadow-lift active:scale-[0.99]',
+        /** Deep magenta — festive emphasis. */
+        magenta:
+          'bg-secondary text-secondary-foreground shadow-soft hover:bg-magenta-soft hover:shadow-lift active:scale-[0.99]',
+        outline:
+          'border border-ink-200 bg-transparent text-foreground hover:border-ink-300 hover:bg-muted',
+        ghost: 'bg-transparent text-foreground hover:bg-muted',
+        link: 'text-foreground underline-offset-4 hover:underline',
+        /** Official WhatsApp green, for inquiry actions. */
+        whatsapp: 'bg-[#25D366] text-white shadow-soft hover:bg-[#1DA851] active:scale-[0.99]',
+      },
+      size: {
+        sm: 'h-9 px-4 text-xs',
+        default: 'h-11 px-6 text-sm',
+        lg: 'h-13 px-8 text-base',
+        icon: 'size-10',
+        'icon-sm': 'size-8',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  },
+);
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    'bg-ink text-ivory-100 hover:bg-ink/90 active:bg-ink border border-ink',
-  dark: 'bg-charcoal-900 text-ivory-100 hover:bg-charcoal-800',
-  outline:
-    'border border-ink/20 text-ink hover:border-ink hover:bg-ivory-50 bg-transparent',
-  ghost: 'text-ink hover:bg-ink/5 bg-transparent',
-  gold: 'bg-gold-500 text-charcoal-900 hover:bg-gold-400',
-  link: 'text-ink underline-offset-4 hover:underline p-0 h-auto bg-transparent',
-};
-
-const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-[13px] gap-1.5',
-  md: 'h-11 px-6 text-sm gap-2',
-  lg: 'h-13 px-8 py-3.5 text-[15px] gap-2.5',
-};
-
-type CommonProps = {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  fullWidth?: boolean;
-  isLoading?: boolean;
-};
-
-const baseClass =
-  'inline-flex items-center justify-center font-medium tracking-[0.02em] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap';
-
-export const Button = forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & CommonProps
->(function Button(
-  { className, variant = 'primary', size = 'md', fullWidth, isLoading, children, disabled, ...props },
-  ref,
-) {
-  return (
-    <button
-      ref={ref}
-      disabled={disabled || isLoading}
-      className={cn(
-        baseClass,
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        className,
-      )}
-      {...props}
-    >
-      {isLoading && (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
-      {children}
-    </button>
-  );
-});
-
-export function LinkButton({
-  href,
-  children,
-  variant = 'primary',
-  size = 'md',
-  fullWidth,
-  className,
-  ...props
-}: { href: string } & CommonProps &
-  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        baseClass,
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
+export interface ButtonProps
+  extends React.ComponentProps<'button'>,
+    VariantProps<typeof buttonVariants> {
+  /** Render as the child element (e.g. a `next/link`) instead of a `<button>`. */
+  asChild?: boolean;
 }
+
+function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {
+  const Comp = asChild ? Slot : 'button';
+  return <Comp className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+}
+
+export { Button, buttonVariants };

@@ -1,128 +1,187 @@
-# JGTHS Designer Boutique & Aari Couture — E-Commerce Platform
+# Aari Couture — Designer Boutique Storefront
 
-A production-quality premium fashion e-commerce platform for **JGTHS Designer Boutique & Aari Couture**, Coimbatore — combining Indian craftsmanship, Aari embroidery, bridal couture, and a full custom-couture workflow.
+A premium, mobile-first e-commerce storefront for a high-end designer boutique specialising in
+**custom Aari work blouses, traditional sarees, hand-painted fabrics and luxury kids' party wear**.
 
-> Indian craftsmanship × modern luxury × personalized couture
+The design language is *Traditional Indian Heritage meets Modern Minimalist Luxury*: an off-white
+canvas, rich emerald/magenta accents, muted gold detailing, editorial serif headings and spacious
+image-led grids.
 
 ---
 
-## Technology Stack
+## Stack
 
 | Layer | Choice |
-|---|---|
-| Framework | Next.js 15 (App Router), React 19, TypeScript |
-| Styling | Tailwind CSS 3 (ivory / charcoal / gold design system), Cormorant Garamond + Inter |
-| Motion | Framer Motion (subtle, editorial) |
-| Icons | Lucide React |
-| Database | SQLite (dev) via Prisma ORM 6 — Postgres-ready schema |
-| Auth | JWT sessions (`jose`) + bcrypt password hashing, httpOnly cookies |
-| Payments | Razorpay (order creation + server-side signature verification), mock mode for development |
-| Validation | Server-side on every API route; totals always recalculated from the database |
+| --- | --- |
+| Framework | Next.js 16 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS v4 (CSS-first `@theme` tokens) |
+| UI primitives | shadcn/ui-style components on Radix UI (`Button`, `Card`, `Input`, `Checkbox`, `Dialog`, `Sheet`) |
+| Icons | Lucide React (+ inline brand SVGs, since Lucide v1 dropped them) |
+| Motion | Framer Motion (page transitions, scroll reveals, expanding panels) |
+| State | Zustand with `persist` → cart + measurement profile survive reloads |
+| Fonts | Playfair Display (headings) + Inter (body), self-hosted via `next/font` |
+
+No database, auth or payment backend — see [What is intentionally not here](#what-is-intentionally-not-here).
 
 ---
 
-## Quick Start
+## Getting started
 
 ```bash
-npm install          # also runs prisma generate
-cp .env.example .env # fill in values (see below)
-npm run db:push      # create/sync the database
-npm run db:seed      # seed categories, 17 products, users, orders, coupons
+npm install
 npm run dev          # http://localhost:3000
 ```
 
-### Environment variables (`.env`)
+Optional — copy `.env.example` to `.env.local` to change the WhatsApp number or site origin.
+Every variable has a working default, so the site runs without one.
 
-See `.env.example`. Keys:
-
-- `DATABASE_URL` — SQLite file URL for dev (`file:./dev.db`)
-- `AUTH_SECRET` — random string used to sign session JWTs
-- `NEXTAUTH_URL` / `NEXT_PUBLIC_SITE_URL` — site origin (used for SEO metadata, sitemap)
-- `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` — when absent, checkout runs in **mock payment mode** (dev-friendly, clearly marked)
-- `WHATSAPP_NUMBER` — boutique WhatsApp in international format, no `+`
-- `UPLOAD_DIR` — local upload folder for custom-order reference images
-
-### Demo credentials (seeded)
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@jgthscouture.in` | `admin123` |
-| Customer | `priya@example.com` | `customer123` |
-
-> Demo passwords only — change them before any real deployment.
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Serve the production build |
+| `npm run typecheck` | `tsc --noEmit` |
 
 ---
 
-## Scripts
+## Design system
 
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Development server (port 3000) |
-| `npm run build` / `npm start` | Production build / serve |
-| `npm run lint` | ESLint |
-| `npm run db:push` | Sync Prisma schema to the database |
-| `npm run db:seed` | Seed demo data (idempotent) |
+All tokens live in `src/app/globals.css` under `:root` and `@theme`. There is no `tailwind.config.ts` —
+Tailwind v4 reads the theme from CSS, so a colour is added in exactly one place.
+
+### Palette
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| `background` | `#FAFAF9` | Off-white/ivory page canvas |
+| `foreground` | `#1C1917` | Body text |
+| `primary` | `#064E3B` | Emerald — primary commerce actions |
+| `secondary` | `#831843` | Deep magenta — festive emphasis |
+| `accent` | `#D4AF37` | Muted gold — highlights, editorial accents |
+| `ivory-*`, `ink-*`, `gold-*` | ramps | Surfaces, borders, tints |
+
+### Type & shape
+
+- `font-serif` → Playfair Display, applied to `h1`–`h4` automatically.
+- `font-sans` → Inter, the body default.
+- Radii: `rounded-md` (controls) → `rounded-2xl` (feature panels).
+- Shadows: `shadow-soft` (cards) and `shadow-lift` (overlays, hero imagery).
+- Custom utilities: `eyebrow` (small uppercase section label) and `no-scrollbar` (scroll rails).
 
 ---
 
-## Architecture
+## Project structure
 
 ```
 src/
-  app/                    # App Router pages + API routes
-    (storefront)          # /, /shop, /collections/[slug], /product/[slug], /cart,
-                          # /checkout, /wishlist, /custom-couture, /about, /aari-atelier,
-                          # /contact, /shipping-returns, /privacy, /terms
-    account/              # customer account: orders, addresses, measurements, requests
-    admin/                # dashboard, products, orders, custom-orders, categories,
-                          # inventory, reviews, coupons, customers, content
-    api/                  # REST endpoints (see below)
-  components/
-    ui/                   # Button, Field/Input/Select/Textarea, Dialog, Drawer, Toast…
-    layout/               # Navbar, Footer, SearchDialog
-    commerce/             # CartProvider, WishlistProvider, AuthProvider, CartDrawer
-    product/              # ProductCard/Grid/Gallery, AddToBagPanel, ReviewList…
-    account/ admin/       # AccountNav, OrderTimeline, AdminNav
-  lib/                    # server-side services: catalog, commerce, cart, auth,
-                          # razorpay, seo, site-content, prisma
-  types/                  # shared TypeScript types
-prisma/                   # schema.prisma + seed.ts
-docs/                     # architecture, database, flows, deployment
+├── app/
+│   ├── layout.tsx              # fonts, metadata, Navbar / Footer / drawer / FAB
+│   ├── template.tsx            # Framer Motion page transition
+│   ├── page.tsx                # homepage
+│   ├── shop/page.tsx           # listing + server-side filtering from the URL
+│   ├── product/[slug]/page.tsx # detail + generateStaticParams + JSON-LD
+│   ├── custom-orders/ kids/ about/ contact/
+│   ├── cart/ account/          # client views behind server metadata wrappers
+│   └── policies/[slug]/        # shipping & returns, privacy, terms
+├── components/
+│   ├── ui/                     # shadcn-style primitives
+│   ├── layout/                 # Navbar, Footer, SearchDialog, PageHero, WhatsAppFab
+│   ├── home/                   # Hero, FeaturedCategories, Bestsellers, AtelierStory, CTA
+│   ├── product/                # ProductCard/Grid, Gallery, AddToBagPanel, MeasurementForm, ShopFilters
+│   ├── commerce/cart-view.tsx  # bag review + WhatsApp order hand-off
+│   └── icons/                  # WhatsApp / Instagram / Facebook / YouTube SVGs
+├── lib/
+│   ├── catalog.ts              # 18 products, 5 categories, read helpers
+│   ├── images.ts               # Unsplash URL builder + curated image pool
+│   ├── site.ts                 # brand, navigation, WhatsApp deep links
+│   ├── shop-filtering.ts       # pure parse / apply / serialise filter logic
+│   ├── policies.ts             # policy copy
+│   └── use-hydrated.ts         # guards persisted state against SSR mismatch
+└── store/
+    ├── cart.ts                 # Zustand cart (+ shipping thresholds)
+    └── measurements.ts         # saved body-measurement profile
 ```
 
-Key principles:
+---
 
-- **Server Components** for data-heavy pages; client components only where interactive.
-- **All pricing computed server-side** — client prices are never trusted.
-- **Inventory reserved at checkout**, restored on payment failure/cancel; made-to-order items don't hold stock.
-- **Server-side validation on every API route**; friendly errors, no raw internals leaked.
+## Features
+
+**Global layout** — announcement strip, sticky blurred header (logo · centred links · search,
+account, cart), multi-column footer with newsletter capture, and a fixed WhatsApp action button
+that expands on hover.
+
+**Homepage** — full-bleed hero with the "Exquisite Aari Couture & Designer Wear" headline and
+*Shop the Collection* CTA, three-card featured category grid (Bridal Aari Blouses, Kids Party Wear,
+Hand-Painted Fabrics), a swipeable bestsellers carousel, an editorial atelier story and a bespoke
+commission band.
+
+**Shop** — sidebar filters for **Category, Price Range and Colour** plus sorting. Filter state is
+parsed and applied **on the server** from the URL, so results are server-rendered, shareable and
+survive a refresh. The grid runs 1 → 2 → 3 → 4 columns and has a designed empty state.
+
+**Product detail** — large image with an animated thumbnail strip; price with discount; fabric and
+embroidery facts; colour swatches; standard size buttons (**XS–XL**, or kids sizes); a
+**"Stitch to my exact measurements"** toggle that expands a form for **bust, waist, shoulder and
+armhole** (plus optional length and sleeve notes) with an inches/cm switch, a **reference image
+upload** with previews, and a "save to my profile" option. Primary **Add to Cart** plus secondary
+**Inquire on WhatsApp** that pre-fills a product-specific message.
+
+**Cart** — persists to `localStorage`, opens automatically on add, merges identical
+product/size/colour/measurement combinations, and offers quantity controls and a free-shipping
+progress bar. The `/cart` page collects delivery details and composes a fully formatted order
+message, including measurements and reference file names, into WhatsApp.
+
+**Account** — a local "atelier profile" showing saved measurements (reused to pre-fill every later
+order) and bag summary.
 
 ---
 
-## API Overview
+## Swapping in real data
 
-**Storefront:** `auth` (register/login/logout/me), `products`, `search`, `cart` (+merge), `wishlist` (+sync), `checkout`, `payments/verify`, `orders`, `coupons/validate`, `reviews`, `addresses`, `measurements`, `custom-orders`, `newsletter` (also contact-form intake), `upload`.
+The storefront is designed to be re-pointed at real content without touching components:
 
-**Admin (role-guarded):** `stats`, `products`, `categories`, `inventory`, `orders`, `custom-orders` (incl. quote + convert-to-order), `customers`, `reviews`, `coupons`, `content`.
+| Want to change | Edit |
+| --- | --- |
+| Products, prices, categories | `src/lib/catalog.ts` — pages read only through its helpers |
+| Placeholder photography | `src/lib/images.ts` (or the `images` array per product) |
+| Brand name, address, phone, socials | `src/lib/site.ts` |
+| WhatsApp number | `NEXT_PUBLIC_WHATSAPP_NUMBER` in `.env.local` |
+| Policy copy | `src/lib/policies.ts` |
+| Colours, fonts, radii, shadows | `@theme` block in `src/app/globals.css` |
 
----
+Because `catalog.ts` exposes `getAllProducts`, `getProductBySlug`, `getProductsByCategory`,
+`getBestsellers` and friends, replacing the arrays with database or CMS calls requires no component
+changes.
 
-## Database
-
-19 models covering users, addresses, categories, products (+images/variants), wishlist, cart, orders (+items/payments), coupons, reviews, measurement profiles, custom orders (+images), notifications, site content, and testimonials. Full details: [`docs/database.md`](docs/database.md).
-
----
-
-## Documentation
-
-- [`docs/architecture.md`](docs/architecture.md) — system design and patterns
-- [`docs/database.md`](docs/database.md) — schema and relationships
-- [`docs/ecommerce-flow.md`](docs/ecommerce-flow.md) — browse → cart → checkout → payment → order
-- [`docs/custom-order-flow.md`](docs/custom-order-flow.md) — custom couture lifecycle
-- [`docs/deployment.md`](docs/deployment.md) — going live checklist
+> Images currently point at curated Unsplash photographs so the visual language reads correctly
+> before the boutique's own catalogue shoot. All 31 URLs used were verified to return HTTP 200.
 
 ---
 
-## Deployment
+## What is intentionally not here
 
-High-level: provision Postgres (`DATABASE_URL`), set real `AUTH_SECRET` + Razorpay keys + `NEXT_PUBLIC_SITE_URL`, run `prisma db push && npm run db:seed`, build and host (Vercel or Node). Full checklist: [`docs/deployment.md`](docs/deployment.md).
+This build is the **customer-facing storefront only** — no database, auth, admin panel or payment
+gateway. Orders and custom commissions hand off to WhatsApp, which is how the boutique already
+takes them.
+
+To add those later:
+
+1. **Persistence** — replace the arrays in `lib/catalog.ts` with your data source of choice and keep
+   the helper signatures.
+2. **Auth & orders** — add an order model, then post the composed message from
+   `components/commerce/cart-view.tsx` to an API route instead of `wa.me`.
+3. **Payments** — insert a gateway between the order summary and the WhatsApp hand-off; the totals
+   are already computed in one place (`store/cart.ts`).
+4. **Newsletter & uploads** — `components/layout/newsletter-form.tsx` and the upload input in
+   `components/product/measurement-form.tsx` currently stay client-side; both have comments marking
+   the integration point.
+
+---
+
+## Verified
+
+- `npm run typecheck` — clean.
+- `npm run build` — 31 routes generated (18 product pages + 3 policy pages statically pre-rendered).
+- Smoke-tested against a production server: every route returns 200, unknown routes 404, category
+  and colour filtering narrow results correctly, the empty-filter state renders, and the WhatsApp
+  deep links are present in the HTML.
